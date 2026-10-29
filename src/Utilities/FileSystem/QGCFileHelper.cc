@@ -282,6 +282,11 @@ QString toLocalPath(const QString &urlOrPath)
         return urlOrPath;
     }
 
+    // QUrl interprets a Windows drive letter as a scheme and lowercases it.
+    if (QDir::isAbsolutePath(urlOrPath)) {
+        return urlOrPath;
+    }
+
     // Check if it's a URL (handles qrc:// -> :/ conversion)
     QUrl url(urlOrPath);
     if (url.isValid() && !url.scheme().isEmpty()) {
@@ -337,6 +342,10 @@ bool isLocalPath(const QString &urlOrPath)
 
     // Qt resource paths are "local" (accessible via QFile)
     if (isQtResource(urlOrPath)) {
+        return true;
+    }
+
+    if (QDir::isAbsolutePath(urlOrPath)) {
         return true;
     }
 

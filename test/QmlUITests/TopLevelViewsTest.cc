@@ -176,6 +176,7 @@ void TopLevelViewsTest::_testSettingsSectionVisibility()
 
     QQuickItem* settingsSection = nullptr;
     QTRY_VERIFY((settingsSection = findVisibleSectionButton(videoButton->parentItem(), QStringLiteral("Settings"))));
+    QVERIFY(scrollIntoView(settingsSection, QStringLiteral("settings_buttonList")));
     QVERIFY(_clickItemAt(settingsSection, 0.5, 0.5, QStringLiteral("section Settings")));
 
     QVERIFY(findVisibleItem(_rootItem, QStringLiteral("settingsGroup_Settings")));

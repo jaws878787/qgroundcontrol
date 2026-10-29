@@ -32,6 +32,8 @@ void BluetoothWorkerTest::init()
                      QRegularExpression(QStringLiteral("Cannot find a compatible running Bluez")));
     ignoreLogMessage("qt.bluetooth", QtWarningMsg,
                      QRegularExpression(QStringLiteral("LE controller has invalid adapter")));
+    ignoreLogMessage("qt.bluetooth.windows", QtWarningMsg,
+                     QRegularExpression(QStringLiteral("^Invalid/null remote device address$")));
     ignoreLogMessage("qt.bluetooth.bluez", QtInfoMsg,
                      QRegularExpression(QStringLiteral("Missing CAP_NET_ADMIN")));
     ignoreLogMessage("qt.bluetooth.bluez", QtWarningMsg,

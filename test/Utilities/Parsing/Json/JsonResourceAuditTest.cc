@@ -59,6 +59,10 @@ void JsonResourceAuditTest::_allResourceJsonParsesClean_test()
     QMap<QString, int> filesCheckedPerType;
     QStringList failures;
 
+    // Resource bytes do not change between translation rows. Parse their headers once;
+    // the real loaders below still validate every catalog's translated content.
+    static QMap<QString, QString> resourceFileTypes;
+
     QDirIterator it(QStringLiteral(":/"), {QStringLiteral("*.json")}, QDir::Files, QDirIterator::Subdirectories);
     while (it.hasNext()) {
         const QString jsonPath = it.next();
@@ -68,19 +72,19 @@ void JsonResourceAuditTest::_allResourceJsonParsesClean_test()
             continue;
         }
 
-        QFile file(jsonPath);
-        QVERIFY2(file.open(QIODevice::ReadOnly), qPrintable(jsonPath));
-        QJsonParseError parseError;
-        const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &parseError);
-        QVERIFY2(parseError.error == QJsonParseError::NoError,
-                 qPrintable(QStringLiteral("%1: %2 at offset %3")
-                                .arg(jsonPath, parseError.errorString())
-                                .arg(parseError.offset)));
-        // Non-object roots cannot carry a fileType and are out of audit scope
-        if (!doc.isObject()) {
-            continue;
+        if (!resourceFileTypes.contains(jsonPath)) {
+            QFile file(jsonPath);
+            QVERIFY2(file.open(QIODevice::ReadOnly), qPrintable(jsonPath));
+            QJsonParseError parseError;
+            const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &parseError);
+            QVERIFY2(parseError.error == QJsonParseError::NoError,
+                     qPrintable(QStringLiteral("%1: %2 at offset %3")
+                                    .arg(jsonPath, parseError.errorString())
+                                    .arg(parseError.offset)));
+            // Non-object roots cannot carry a fileType and are out of audit scope.
+            resourceFileTypes.insert(jsonPath, doc.object().value(QStringLiteral("fileType")).toString());
         }
-        const QString fileType = doc.object().value(QStringLiteral("fileType")).toString();
+        const QString fileType = resourceFileTypes.value(jsonPath);
         if (fileType.isEmpty()) {
             continue;
         }

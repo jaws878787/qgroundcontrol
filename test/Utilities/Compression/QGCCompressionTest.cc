@@ -15,9 +15,9 @@
 #include <QtCore/QTimer>
 #include <QtCore/QWaitCondition>
 #include <QtTest/QSignalSpy>
-
 #include <algorithm>
 #include <atomic>
+#include <filesystem>
 #include <initializer_list>
 #include <vector>
 
@@ -1310,8 +1310,12 @@ void QGCCompressionTest::_testExtractArchiveToSymlinkedOutputPath()
     const QString symlinkOutputDir = tempDir.path() + "/symlink_alias_output";
     QVERIFY(QDir().mkpath(realOutputDir));
     QFile::remove(symlinkOutputDir);
-    if (!QFile::link(realOutputDir, symlinkOutputDir)) {
-        QSKIP(qPrintable(QStringLiteral("Directory symlinks are not supported in this environment")));
+    // QFile::link creates a Windows shortcut, not a directory symlink.
+    std::error_code error;
+    std::filesystem::create_directory_symlink(QFileInfo(realOutputDir).filesystemFilePath(),
+                                              QFileInfo(symlinkOutputDir).filesystemFilePath(), error);
+    if (error) {
+        QSKIP(qPrintable(QString::fromStdString(error.message())));
     }
 
     QFileInfo symlinkInfo(symlinkOutputDir);

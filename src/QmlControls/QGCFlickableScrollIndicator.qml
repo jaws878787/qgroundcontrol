@@ -32,9 +32,11 @@ Rectangle {
 
                 PropertyChanges {
                     target:         control
-                    y:              _flickable.height * (_flickable.contentY / _flickable.contentHeight)
+                    y:              _flickable.contentHeight > 0
+                                    ? _flickable.height * (_flickable.contentY / _flickable.contentHeight) : 0
                     width:          ScreenTools.defaultFontPixelWidth / 2
-                    height:         _flickable.height * (_flickable.height / _flickable.contentHeight)
+                    height:         _flickable.contentHeight > 0
+                                    ? _flickable.height * Math.min(1, _flickable.height / _flickable.contentHeight) : 0
                     showIndicator:  (_flickable.flickableDirection === Flickable.AutoFlickDirection ||
                                         _flickable.flickableDirection === Flickable.VerticalFlick ||
                                         _flickable.flickableDirection === Flickable.HorizontalAndVerticalFlick) &&
@@ -51,9 +53,11 @@ Rectangle {
 
                 PropertyChanges {
                     target:         control
-                    x:              _flickable.width * (_flickable.contentX / _flickable.contentWidth)
+                    x:              _flickable.contentWidth > 0
+                                    ? _flickable.width * (_flickable.contentX / _flickable.contentWidth) : 0
                     height:         ScreenTools.defaultFontPixelWidth / 2
-                    width:          _flickable.width * (_flickable.width / _flickable.contentWidth)
+                    width:          _flickable.contentWidth > 0
+                                    ? _flickable.width * Math.min(1, _flickable.width / _flickable.contentWidth) : 0
                     showIndicator:  (_flickable.flickableDirection === Flickable.AutoFlickDirection ||
                                         _flickable.flickableDirection === Flickable.HorizontalFlick ||
                                         _flickable.flickableDirection === Flickable.HorizontalAndVerticalFlick) &&

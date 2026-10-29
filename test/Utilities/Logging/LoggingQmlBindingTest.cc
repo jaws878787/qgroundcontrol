@@ -8,10 +8,7 @@
 #include "LogEntry.h"
 #include "LogManager.h"
 #include "LogModel.h"
-#include "QGCLoggingCategory.h"
 #include "UnitTestList.h"
-
-QGC_LOGGING_CATEGORY(LoggingQmlBindingTestLog, "Test.LoggingQmlBinding")
 
 // Share a single QQmlEngine across all test methods.
 // qmlRegisterSingletonInstance ties the singleton to the first engine that
@@ -82,12 +79,17 @@ void LoggingQmlBindingTest::_modelReceivesEntries()
     auto* model = LogManager::instance()->model();
     const int before = model->totalCount();
 
-    expectLogMessage("Test.LoggingQmlBinding", QtWarningMsg, QRegularExpression("test message for model"));
-    qCWarning(LoggingQmlBindingTestLog) << "test message for model";
+    // QTest replaces the application's message handler. Enqueue an entry explicitly
+    // instead of relying on unrelated startup messages to exercise the QML model.
+    LogEntry entry;
+    entry.level = LogEntry::Warning;
+    entry.category = QStringLiteral("Test.LoggingQmlBinding");
+    entry.message = QStringLiteral("test message for model");
+    entry.buildFormatted();
+    model->enqueue(entry);
     // Model update is an in-process queued signal, not I/O; a 500 ms window
     // is generous for a local Qt signal and keeps failure feedback fast.
     QTRY_VERIFY_WITH_TIMEOUT(model->totalCount() > before, 500);
-    verifyExpectedLogMessage();
 
     QQmlComponent component(_engine);
     component.setData(R"(

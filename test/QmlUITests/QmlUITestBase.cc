@@ -3,11 +3,12 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QElapsedTimer>
 #include <QtCore/QEventLoop>
-#include <QtCore/QtMath>
 #include <QtCore/QRegularExpression>
 #include <QtCore/QScopeGuard>
 #include <QtCore/QVariant>
+#include <QtCore/QtMath>
 #include <QtQml/QQmlApplicationEngine>
+#include <QtQml/QQmlContext>
 #include <QtQml/QQmlIncubationController>
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QQuickWindow>
@@ -154,6 +155,18 @@ void QmlUITestBase::startUI()
 
     _window = qobject_cast<QQuickWindow *>(_engine->rootObjects().first());
     QVERIFY(_window);
+
+    QList<QQuickItem*> pendingItems{_window->contentItem()};
+    while (!pendingItems.isEmpty()) {
+        QQuickItem* item = pendingItems.takeLast();
+        QVERIFY2(qIsFinite(item->width()) && qIsFinite(item->height()),
+                 qPrintable(QStringLiteral("Non-finite size: %1 %2 (%3 x %4), %5")
+                                .arg(QLatin1String(item->metaObject()->className()), item->objectName())
+                                .arg(item->width())
+                                .arg(item->height())
+                                .arg(qmlContext(item) ? qmlContext(item)->baseUrl().toString() : QString())));
+        pendingItems.append(item->childItems());
+    }
 
     QVERIFY(QTest::qWaitForWindowExposed(_window));
 
